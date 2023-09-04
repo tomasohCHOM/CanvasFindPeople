@@ -1,7 +1,7 @@
 import discord
 import os
 import sqlite3
-import canvasapi.exceptions
+import canvasapi
 from canvas import *
 from dotenv import load_dotenv
 
@@ -24,7 +24,7 @@ def get_api_key(guild_id: discord.guild):
     try:
         with conn:
             cur = conn.cursor()
-            cur.execute(f"SELECT api_key FROM keys WHERE guild_id = {guild_id}")
+            cur.execute(f"SELECT canvas_api_key FROM keys WHERE guild_id = {guild_id}")
         return cur.fetchone()[0]
     except (AttributeError, TypeError):
         return "401"
@@ -32,8 +32,10 @@ def get_api_key(guild_id: discord.guild):
         conn.close()
 
 
-def create_embed(title):
+def create_embed(title, description=""):
     embed = discord.Embed(title=title, color=14695977)
+    if description:
+        embed.description = description
     embed.set_author(name=client.user.display_name, icon_url=client.user.avatar)
     embed.set_footer(text="Use !help for the complete commands list")
 
@@ -51,15 +53,32 @@ async def register_user(message: discord.Message, key):
         await message.channel.send(embed=create_embed("Invalid API Key! Try again."))
 
     # Place the key into SQLite DB
-    try:
-        conn = sqlite3.connect("bot.db")
+    conn = sqlite3.connect("bot.db")
+    with conn:
         cur = conn.cursor()
         cur.execute(
             f'REPLACE INTO keys (guild_id, canvas_api_key) VALUES (({message.guild.id}), ("{key}"))'
         )
-    finally:
-        conn.close()
+    conn.close()
     await message.channel.send(embed=create_embed("User has been registered!"))
+
+
+async def display_courses(message: discord.Message):
+    key = get_api_key(message.guild.id)
+    if key == "401":
+        await message.channel.send(embed=create_embed("No API key was found."))
+        return
+    try:
+        test_key(key)
+    except canvasapi.exceptions.InvalidAccessToken:
+        await message.channel.send(embed=create_embed("Invalid API key!"))
+        return
+
+    courses = list_courses(key)
+    courses_message = ""
+    for course in courses:
+        courses_message += course.name + "\n"
+    await message.channel.send(embed=create_embed("Course List", courses_message))
 
 
 @client.event
@@ -72,6 +91,10 @@ async def on_message(message: discord.Message):
     if user_message.lower().startswith("!register"):
         key = user_message[REGISTER_LEN::].strip()
         await register_user(message, key)
+    elif user_message.lower().startswith("!courses"):
+        await display_courses(message)
+    elif user_message.lower().startswith("!help"):
+        await display_help(message)
 
     # await message.channel.send("Hello")
 
@@ -89,7 +112,7 @@ async def on_ready():
             "CREATE TABLE IF NOT EXISTS keys (guild_id int UNIQUE, canvas_api_key string, course_name string)"
         )
     except sqlite3.Error as error:
-        print("Error while connecting to sqlite", error)
+        print("Error while connecting to SQLite", error)
     finally:
         conn.close()
 

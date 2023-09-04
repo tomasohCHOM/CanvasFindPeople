@@ -1,4 +1,4 @@
-from canvasapi import *
+from canvasapi import Canvas
 
 CANVAS_API_URL = "https://canvas.instructure.com/"
 
@@ -13,7 +13,7 @@ def list_courses(api_key):
     user = canvas.get_current_user()
     courses = []
 
-    for course in user.get_courses():
+    for course in user.get_courses(enrollment_state="active"):
         courses.append(course)
     return courses
 
