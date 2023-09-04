@@ -1,7 +1,8 @@
 import discord
 import os
 import sqlite3
-import canvasapi
+import canvasapi.exceptions
+import canvasapi.course
 from canvas import *
 from dotenv import load_dotenv
 
@@ -32,13 +33,13 @@ def get_api_key(guild_id: discord.guild):
         conn.close()
 
 
-def create_embed(title, description=""):
+def create_embed(title, description="", set_footer=True):
     embed = discord.Embed(title=title, color=14695977)
     if description:
         embed.description = description
     embed.set_author(name=client.user.display_name, icon_url=client.user.avatar)
-    embed.set_footer(text="Use !help for the complete commands list")
-
+    if set_footer:
+        embed.set_footer(text="Use !help for the complete commands list")
     return embed
 
 
@@ -79,6 +80,18 @@ async def display_courses(message: discord.Message):
     for course in courses:
         courses_message += course.name + "\n"
     await message.channel.send(embed=create_embed("Course List", courses_message))
+
+
+async def display_help(message: discord.Message):
+    help_description = (
+        f"`!register (api_key)` Registers your Canvas API key with the bot."
+        f"This step is required for the bot to function.\n\n"
+        f"`!courses` Intended for use during setup to list all possible "
+        f"Canvas courses for the bot to pair with.\n\n"
+    )
+    await message.channel.send(
+        embed=create_embed("List of Commands", help_description, set_footer=False)
+    )
 
 
 @client.event
