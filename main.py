@@ -82,6 +82,24 @@ async def display_courses(message: discord.Message):
     await message.channel.send(embed=create_embed("Course List", courses_message))
 
 
+async def display_all_people(message: discord.Message):
+    key = get_api_key(message.guild.id)
+    if key == "401":
+        await message.channel.send(embed=create_embed("No API key was found."))
+        return
+    try:
+        test_key(key)
+    except canvasapi.exceptions.InvalidAccessToken:
+        await message.channel.send(embed=create_embed("Invalid API key!"))
+        return
+
+    users = get_people(key)
+    people_message = ""
+    for user in users:
+        people_message += user.name + "\n"
+    await message.channel.send(embed=create_embed("Course List", people_message))
+
+
 async def display_help(message: discord.Message):
     help_description = (
         f"`!register (api_key)` Registers your Canvas API key with the bot."
@@ -106,6 +124,8 @@ async def on_message(message: discord.Message):
         await register_user(message, key)
     elif user_message.lower().startswith("!courses"):
         await display_courses(message)
+    elif user_message.lower().startswith("!all_people"):
+        await display_all_people(message)
     elif user_message.lower().startswith("!help"):
         await display_help(message)
 
