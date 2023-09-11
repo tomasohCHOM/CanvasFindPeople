@@ -133,6 +133,29 @@ async def search_people(message: discord.Message, query):
     )
 
 
+async def search_by_last_name(message: discord.Message, query):
+    key = get_api_key(message.guild.id)
+    if key == "401":
+        await message.channel.send(embed=create_embed("No API key was found."))
+        return
+    try:
+        test_key(key)
+    except canvasapi.exceptions.InvalidAccessToken:
+        await message.channel.send(embed=create_embed("Invalid API key!"))
+        return
+
+    if query == "" or query is None:
+        await message.channel.send(embed=create_embed("Invalid query, try again!"))
+        return
+
+    found_users = search_user_by_last_name(query, key)
+    for found_user in found_users:
+        found_users += found_user[0].name + f"({found_users[1].name})" + "\n"
+    await message.channel.send(
+        embed=create_embed(f"Users found with last name `{query}`")
+    )
+
+
 async def search_people_in_course(message: discord.Message, query):
     key = get_api_key(message.guild.id)
     if key == "401":
@@ -219,10 +242,6 @@ async def display_help(message: discord.Message):
     )
 
 
-def analyze_string(s):
-    pass
-
-
 @client.event
 async def on_message(message: discord.Message):
     if message.author == client.user or not message.guild:
@@ -233,6 +252,7 @@ async def on_message(message: discord.Message):
     SEARCH_USER_LEN = len("!search-user")
     SEARCH_IN_COURSE_LEN = len("!search-in-course")
     SET_COURSE_LEN = len("!set-course")
+    SEARCH_LAST_NAME_LEN = len("!search-by-last-name")
 
     if user_message.startswith("!register"):
         key = user_message[REGISTER_LEN::].strip()
@@ -249,6 +269,9 @@ async def on_message(message: discord.Message):
     elif user_message.startswith("!search-user"):
         query = user_message[SEARCH_USER_LEN::].lstrip()
         await search_people(message, query)
+    elif user_message.startswith("!search-by-last-name"):
+        query = user_message[SEARCH_LAST_NAME_LEN::].lstrip()
+        await search_by_last_name(message, query)
     elif user_message.startswith("!search-in-course"):
         query = user_message[SEARCH_IN_COURSE_LEN::].lstrip()
         await search_people_in_course(message, query)
