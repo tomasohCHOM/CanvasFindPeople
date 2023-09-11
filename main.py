@@ -155,8 +155,7 @@ async def search_by_last_name(message: discord.Message, query):
 
     found_users_message = ""
     for found_user in found_users:
-        print(found_user[0], found_user[1])
-        found_users_message += found_user[0].name + f" ({found_users[1].name})" + "\n"
+        found_users_message += found_user[0].name + f" ({found_user[1].name})" + "\n"
     await message.channel.send(
         embed=create_embed(f"Users found with last name `{query}`", found_users_message)
     )

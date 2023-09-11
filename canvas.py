@@ -68,16 +68,20 @@ def search_user_by_last_name(searched_user, api_key):
     for course in courses:
         users = get_users_from_course(course)
         query_first_letter = searched_user[0]
-        print(query_first_letter)
         left, right = 0, len(users) - 1
         while left <= right:
             mid = (left + right) // 2
             if query_first_letter.lower() == users[mid].sortable_name[0].lower():
-                print(users[mid].sortable_name)
                 start_pos = mid
                 while (
+                    start_pos != 0
+                    and query_first_letter.lower()
+                    == users[start_pos - 1].sortable_name[0].lower()
+                ):
+                    start_pos -= 1
+                while (
                     query_first_letter.lower()
-                    == users[start_pos].sortable_name.lower()[0]
+                    == users[start_pos].sortable_name[0].lower()
                 ):
                     if searched_user.lower() in users[start_pos].sortable_name.lower():
                         found_users.append((users[start_pos], course))
@@ -88,8 +92,6 @@ def search_user_by_last_name(searched_user, api_key):
                 query_first_letter.lower()
             ):
                 right = mid
-                print(users[right].sortable_name)
             else:
                 left = mid + 1
-                print(users[left].sortable_name)
     return found_users
