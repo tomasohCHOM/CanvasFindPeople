@@ -20,6 +20,16 @@ def get_courses(api_key):
     return courses
 
 
+def search_course(api_key, query):
+    canvas = Canvas(CANVAS_API_URL, api_key)
+    user = canvas.get_current_user()
+
+    for course in user.get_courses(enrollment_state="active"):
+        if query.lower() in str(course).lower():
+            return course
+    return None
+
+
 def get_users_from_course(course):
     people = []
     for user in course.get_users():

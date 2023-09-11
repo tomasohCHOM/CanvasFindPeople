@@ -115,6 +115,10 @@ async def search_people(message: discord.Message, query):
         await message.channel.send(embed=create_embed("Invalid API key!"))
         return
 
+    if query == "" or query is None:
+        await message.channel.send(embed=create_embed("Invalid query, try again!"))
+        return
+
     found_users = search_user_in_all(query, key)
     if not found_users:
         await message.channel.send(embed=create_embed("No users found!"))
@@ -127,6 +131,73 @@ async def search_people(message: discord.Message, query):
     await message.channel.send(
         embed=create_embed(f"Users found with query `{query}`", found_users_message)
     )
+
+
+async def search_people_in_course(message: discord.Message, query):
+    key = get_api_key(message.guild.id)
+    if key == "401":
+        await message.channel.send(embed=create_embed("No API key was found."))
+        return
+    try:
+        test_key(key)
+    except canvasapi.exceptions.InvalidAccessToken:
+        await message.channel.send(embed=create_embed("Invalid API key!"))
+        return
+
+    conn = sqlite3.connect("bot.db")
+    with conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT course_name FROM keys WHERE guild_id = {message.guild.id}")
+        course_name = cur.fetchone()[0]
+    conn.close()
+
+    if course_name is None:
+        await message.channel.send(embed=create_embed("No course set for guild!"))
+        return
+
+    course = search_course(key, course_name)
+    found_users = search_user_in_course(course, query)
+    if not found_users:
+        await message.channel.send(embed=create_embed("No users found!"))
+
+    found_users_message = ""
+    for found_user in found_users:
+        found_users_message += found_user[0].name + "\n"
+    await message.channel.send(
+        embed=create_embed(
+            f"Users found with query: `{query}` in {course_name}", found_users_message
+        )
+    )
+
+
+async def set_course(message: discord.Message, query):
+    key = get_api_key(message.guild.id)
+    if key == "401":
+        await message.channel.send(embed=create_embed("No API key was found."))
+        return
+    try:
+        test_key(key)
+    except canvasapi.exceptions.InvalidAccessToken:
+        await message.channel.send(embed=create_embed("Invalid API key!"))
+        return
+
+    if query == "" or query is None:
+        await message.channel.send(embed=create_embed("Invalid query, try again!"))
+        return
+
+    course = search_course(key, query)
+    if not course:
+        await message.channel.send(embed=create_embed("No courses found!"))
+        return
+
+    conn = sqlite3.connect("bot.db")
+    with conn:
+        cur = conn.cursor()
+        cur.execute(
+            f'REPLACE INTO keys (guild_id, canvas_api_key, course_name) VALUES (({message.guild.id}), ("{key}"), ("{course}"))'
+        )
+    conn.close()
+    await message.channel.send(embed=create_embed(f"Course set as {course}"))
 
 
 async def display_help(message: discord.Message):
@@ -159,20 +230,28 @@ async def on_message(message: discord.Message):
     user_message = message.content.lower()
 
     REGISTER_LEN = len("!register")
-    SEARCH_USER = len("!search-user")
+    SEARCH_USER_LEN = len("!search-user")
+    SEARCH_IN_COURSE_LEN = len("!search-in-course")
+    SET_COURSE_LEN = len("!set-course")
 
     if user_message.startswith("!register"):
         key = user_message[REGISTER_LEN::].strip()
         await register_user(message, key)
     elif user_message.startswith("!courses"):
         await display_courses(message)
+    elif user_message.startswith("!set-course"):
+        query = user_message[SET_COURSE_LEN::].strip()
+        await set_course(message, query)
     elif user_message.startswith("!list-everyone"):
         await display_all_people(message)
     elif user_message.startswith("!help"):
         await display_help(message)
     elif user_message.startswith("!search-user"):
-        query = user_message[SEARCH_USER::].lstrip()
+        query = user_message[SEARCH_USER_LEN::].lstrip()
         await search_people(message, query)
+    elif user_message.startswith("!search-in-course"):
+        query = user_message[SEARCH_IN_COURSE_LEN::].lstrip()
+        await search_people_in_course(message, query)
 
 
 @client.event
