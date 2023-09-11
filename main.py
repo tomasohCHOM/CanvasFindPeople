@@ -149,10 +149,16 @@ async def search_by_last_name(message: discord.Message, query):
         return
 
     found_users = search_user_by_last_name(query, key)
+    if not found_users:
+        await message.channel.send(embed=create_embed("No users found!"))
+        return
+
+    found_users_message = ""
     for found_user in found_users:
-        found_users += found_user[0].name + f"({found_users[1].name})" + "\n"
+        print(found_user[0], found_user[1])
+        found_users_message += found_user[0].name + f" ({found_users[1].name})" + "\n"
     await message.channel.send(
-        embed=create_embed(f"Users found with last name `{query}`")
+        embed=create_embed(f"Users found with last name `{query}`", found_users_message)
     )
 
 
@@ -182,6 +188,7 @@ async def search_people_in_course(message: discord.Message, query):
     found_users = search_user_in_course(course, query)
     if not found_users:
         await message.channel.send(embed=create_embed("No users found!"))
+        return
 
     found_users_message = ""
     for found_user in found_users:

@@ -70,22 +70,26 @@ def search_user_by_last_name(searched_user, api_key):
         query_first_letter = searched_user[0]
         print(query_first_letter)
         left, right = 0, len(users) - 1
-        print((users[left].sortable_name[0]))
-        # while left <= right:
-        #     mid = (left + right) // 2
-        #     if query_first_letter.lower() == users[mid].name[0].lower():
-        #         print(users[mid].name)
-        #         start_pos = mid
-        #         while query_first_letter.lower() == users[mid].lower()[0]:
-        #             if searched_user.lower() in users[start_pos].name.lower():
-        #                 found_users.append((users[start_pos], course))
-        #             start_pos += 1
-        #         break
+        while left <= right:
+            mid = (left + right) // 2
+            if query_first_letter.lower() == users[mid].sortable_name[0].lower():
+                print(users[mid].sortable_name)
+                start_pos = mid
+                while (
+                    query_first_letter.lower()
+                    == users[start_pos].sortable_name.lower()[0]
+                ):
+                    if searched_user.lower() in users[start_pos].sortable_name.lower():
+                        found_users.append((users[start_pos], course))
+                    start_pos += 1
+                break
 
-        #     elif ord(users[mid].name[0].lower()) > ord(query_first_letter.lower()):
-        #         right = mid
-        #         print(users[right].name)
-        #     else:
-        #         left = mid + 1
-        #         print(users[left].name)
+            elif ord(users[mid].sortable_name[0].lower()) > ord(
+                query_first_letter.lower()
+            ):
+                right = mid
+                print(users[right].sortable_name)
+            else:
+                left = mid + 1
+                print(users[left].sortable_name)
     return found_users
