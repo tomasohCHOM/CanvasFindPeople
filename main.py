@@ -121,8 +121,9 @@ async def search_people(message: discord.Message, query):
         return
 
     found_users_message = ""
-    for user in found_users:
-        found_users_message += user.name + "\n"
+    for found_user in found_users:
+        # found_user[0] is the User object, while found_use[1] is the Course
+        found_users_message += found_user[0].name + f" ({found_user[1].name})" + "\n"
     await message.channel.send(
         embed=create_embed(f"Users found with query `{query}`", found_users_message)
     )
@@ -130,14 +131,25 @@ async def search_people(message: discord.Message, query):
 
 async def display_help(message: discord.Message):
     help_description = (
-        f"`!register [YOUR_API_KEY]` Registers your Canvas API key with the bot."
+        f"`!register [YOUR_API_KEY]`: Registers your Canvas API key with the bot."
         f"This step is required for the bot to function.\n\n"
-        f"`!courses` Intended for use during setup to list all possible "
-        f"Canvas courses for the bot to pair with.\n\n"
+        f"`!courses`: Lists all of the courses with an enrollment state of active.\n\n"
+        f"`!list-everyone`: Displays all the people that the user shares a course with."
+        f" Each course's people is separated into its own embed.\n\n"
+        f"`!search-user [query]`: Searches for user(s) that match the `query` (which "
+        f"can be their last name, for example), and returns an embed with the found users "
+        f"(or none if no users were found).\n\n"
+        f"NOTE: you should ignore the square braces when inputting your api key or query. "
+        f"Input the necessary parameters without the square brackets (only separate it from "
+        f"the command with a white space)\n\n"
     )
     await message.channel.send(
         embed=create_embed("List of Commands", help_description, set_footer=False)
     )
+
+
+def analyze_string(s):
+    pass
 
 
 @client.event
@@ -154,7 +166,7 @@ async def on_message(message: discord.Message):
         await register_user(message, key)
     elif user_message.startswith("!courses"):
         await display_courses(message)
-    elif user_message.startswith("!all-people"):
+    elif user_message.startswith("!list-everyone"):
         await display_all_people(message)
     elif user_message.startswith("!help"):
         await display_help(message)

@@ -40,8 +40,7 @@ def search_user_in_course(course, searched_user):
     found_users = []
     for user in course.get_users():
         if searched_user.lower() in user.name.lower():
-            print(user.name)
-            found_users.append(user)
+            found_users.append((user, course))
     return found_users
 
 
@@ -54,4 +53,4 @@ def search_user_in_all(searched_user, api_key):
 
 
 def search_user_by_last_name(course, searched_user):
-    users = course.get_users().split()
+    pass
