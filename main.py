@@ -235,11 +235,17 @@ async def display_help(message: discord.Message):
         f"`!register [YOUR_API_KEY]`: Registers your Canvas API key with the bot."
         f"This step is required for the bot to function.\n\n"
         f"`!courses`: Lists all of the courses with an enrollment state of active.\n\n"
+        f"`set-course [query]`: Matches a course that the user is enrolled in to search "
+        f"for users only in that course.\n\n"
         f"`!list-everyone`: Displays all the people that the user shares a course with."
         f" Each course's people is separated into its own embed.\n\n"
         f"`!search-user [query]`: Searches for user(s) that match the `query` (which "
         f"can be their last name, for example), and returns an embed with the found users "
         f"(or none if no users were found).\n\n"
+        f"`!search-by-last-name [query]`: Searches for user(s) that match the `query`, which "
+        f"needs to be their last name. The algorithm will perform a Binary Search.\n\n"
+        f"`!search-in-course [query]`: Searches for user(s) that match the `query` with "
+        f"the matching course (use `!set-course [query]` prior to this command.\n\n"
         f"NOTE: you should ignore the square braces when inputting your api key or query. "
         f"Input the necessary parameters without the square brackets (only separate it from "
         f"the command with a white space)\n\n"
@@ -271,8 +277,6 @@ async def on_message(message: discord.Message):
         await set_course(message, query)
     elif user_message.startswith("!list-everyone"):
         await display_all_people(message)
-    elif user_message.startswith("!help"):
-        await display_help(message)
     elif user_message.startswith("!search-user"):
         query = user_message[SEARCH_USER_LEN::].lstrip()
         await search_people(message, query)
@@ -282,6 +286,8 @@ async def on_message(message: discord.Message):
     elif user_message.startswith("!search-in-course"):
         query = user_message[SEARCH_IN_COURSE_LEN::].lstrip()
         await search_people_in_course(message, query)
+    elif user_message.startswith("!help"):
+        await display_help(message)
 
 
 @client.event
