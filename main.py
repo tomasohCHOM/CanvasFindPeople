@@ -261,7 +261,7 @@ async def display_help(message: discord.Message):
         f"`!register [YOUR_API_KEY]`: Registers your Canvas API key with the bot."
         f"This step is required for the bot to function.\n\n"
         f"`!courses`: Lists all of the courses with an enrollment state of active.\n\n"
-        f"`set-course [query]`: Matches a course that the user is enrolled in to search "
+        f"`!set-course [query]`: Matches a course that the user is enrolled in to search "
         f"for users only in that course.\n\n"
         f"`!list-everyone`: Displays all the people that the user shares a course with."
         f" Each course's people is separated into its own embed.\n\n"
