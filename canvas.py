@@ -91,7 +91,7 @@ def search_user_by_last_name(searched_user, api_key):
             elif ord(users[mid].sortable_name[0].lower()) > ord(
                 query_first_letter.lower()
             ):
-                right = mid
+                right = mid - 1
             else:
                 left = mid + 1
     return found_users
