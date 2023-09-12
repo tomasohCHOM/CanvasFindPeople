@@ -52,6 +52,7 @@ async def register_user(message: discord.Message, key):
         test_key(key)
     except canvasapi.exceptions.InvalidAccessToken:
         await message.channel.send(embed=create_embed("Invalid API Key! Try again."))
+        return
 
     # Place the key into SQLite DB
     conn = sqlite3.connect("bot.db")
@@ -252,7 +253,7 @@ async def display_help(message: discord.Message):
 async def on_message(message: discord.Message):
     if message.author == client.user or not message.guild:
         return
-    user_message = message.content.lower()
+    user_message = message.content
 
     REGISTER_LEN = len("!register")
     SEARCH_USER_LEN = len("!search-user")
