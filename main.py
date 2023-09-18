@@ -214,6 +214,30 @@ async def set_course(message: discord.Message, query):
     await message.channel.send(embed=create_embed(f"Course set as {course}"))
 
 
+async def remove_course(message: discord.Message):
+    """
+    Removes the course that was stored in DB.
+    """
+    key = get_api_key(message.guild.id)
+    if key == "401":
+        await message.channel.send(embed=create_embed("No API key was found."))
+        return
+    try:
+        test_key(key)
+    except canvasapi.exceptions.InvalidAccessToken:
+        await message.channel.send(embed=create_embed("Invalid API key!"))
+        return
+
+    conn = sqlite3.connect("bot.db")
+    with conn:
+        cur = conn.cursor()
+        cur.execute(
+            f'REPLACE INTO keys (guild_id, canvas_api_key, course_name) VALUES (({message.guild.id}), ("{key}"), (""))'
+        )
+    conn.close()
+    await message.channel.send(embed=create_embed(f"Course has been cleared!"))
+
+
 async def search_people_in_course(message: discord.Message, query):
     """
     Retrieves the stored course from DB and searches for people in that course
@@ -236,7 +260,7 @@ async def search_people_in_course(message: discord.Message, query):
         course_name = cur.fetchone()[0]
     conn.close()
 
-    if course_name is None:
+    if not course_name or course_name == "":
         await message.channel.send(embed=create_embed("No course set for guild!"))
         return
 
@@ -301,6 +325,8 @@ async def on_message(message: discord.Message):
     elif user_message.startswith("!set-course"):
         query = user_message[SET_COURSE_LEN::].strip()
         await set_course(message, query)
+    elif user_message.startswith("!remove-course"):
+        await remove_course(message)
     elif user_message.startswith("!list-everyone"):
         await display_all_people(message)
     elif user_message.startswith("!search-user"):
