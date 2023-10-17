@@ -1,4 +1,5 @@
 from canvasapi import *
+import canvasapi.exceptions
 
 CANVAS_API_URL = "https://canvas.instructure.com/"
 
@@ -58,7 +59,10 @@ def search_user_in_all(searched_user, api_key):
     courses = get_courses(api_key)
     found_users = []
     for course in courses:
-        found_users.extend(search_user_in_course(course, searched_user))
+        try:
+            found_users.extend(search_user_in_course(course, searched_user))
+        except canvasapi.exceptions.Forbidden:
+            continue
     return found_users
 
 
@@ -66,7 +70,10 @@ def search_user_by_last_name(searched_user, api_key):
     courses = get_courses(api_key)
     found_users = []
     for course in courses:
-        users = get_users_from_course(course)
+        try:
+            users = get_users_from_course(course)
+        except canvasapi.exceptions.Forbidden:
+            continue
         query_first_letter = searched_user[0]
         left, right = 0, len(users) - 1
         while left <= right:

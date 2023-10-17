@@ -273,7 +273,14 @@ async def search_people_in_course(message: discord.Message, query):
         return
 
     course = search_course(key, course_name)
-    found_users = search_user_in_course(course, query)
+    try:
+        found_users = search_user_in_course(course, query)
+    except canvasapi.exceptions.Forbidden:
+        await message.channel.send(
+            embed=create_embed(f"Could not search in {course.name} (permission denied)")
+        )
+        return
+
     if not found_users:
         await message.channel.send(embed=create_embed("No users found!"))
         return
