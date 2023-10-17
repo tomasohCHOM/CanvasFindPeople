@@ -109,7 +109,15 @@ async def display_all_people(message: discord.Message):
     courses = get_courses(key)
     for course in courses:
         people_message = ""
-        users = get_users_from_course(course)
+        try:
+            users = get_users_from_course(course)
+        except canvasapi.exceptions.Forbidden:
+            await message.channel.send(
+                embed=create_embed(
+                    f"Could not search in {course.name} (permission denied)"
+                )
+            )
+            continue
         for user in users:
             people_message += user.name + "\n"
         await message.channel.send(

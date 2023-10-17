@@ -14,8 +14,8 @@ def get_courses(api_key):
     courses = []
 
     for course in user.get_courses(enrollment_state="active"):
-        if "Passport" in course.name or "Title IX" in course.name:
-            continue
+        # if "Passport" in course.name or "Title IX" in course.name:
+        #     continue
         courses.append(course)
     return courses
 
